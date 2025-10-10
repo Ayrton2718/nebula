@@ -63,7 +63,7 @@ Status ContinentalSRR520HwInterface::sensor_interface_start()
     print_info(std::string("applied filters: ") + config_ptr_->filters);
     can_fd_receiver_ptr_->SetCanFilters(
       ::drivers::socketcan::SocketCanReceiver::CanFilterList(config_ptr_->filters));
-    logger_->info(std::string("applied filters: ") + config_ptr_->filters);
+    print_error(std::string("applied filters: ") + config_ptr_->filters);
 
     sensor_interface_active_ = true;
 
@@ -129,7 +129,7 @@ void ContinentalSRR520HwInterface::receive_loop()
       receive_id = can_receiver_ptr_->receive(
         packet_msg_ptr->data.data() + 4 * sizeof(uint8_t), receiver_timeout_nsec);
     } catch (const std::exception & ex) {
-      logger_->error(std::string("Error receiving classic CAN message: ") + ex.what());
+      print_error(std::string("Error receiving classic CAN message: ") + ex.what());
       continue;
     }
 
@@ -151,7 +151,7 @@ void ContinentalSRR520HwInterface::receive_loop()
     packet_msg_ptr->stamp.nanosec = stamp % 1'000'000'000;
 
     if (receive_id.frame_type() == ::drivers::socketcan::FrameType::ERROR) {
-      logger_->error("Classic CAN message is an error frame");
+      print_error("Classic CAN message is an error frame");
       continue;
     }
 
