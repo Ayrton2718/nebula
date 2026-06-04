@@ -1101,25 +1101,15 @@ HesaiStatus HesaiHwInterface::check_and_set_config(
   // Avoids spamming the sensor, which leads to failure when configuring it.
   auto wait_time = 100ms;
   if (sensor_configuration->return_mode != current_return_mode) {
+    // Changing the sensor's return mode from the driver is intentionally disabled.
+    // Keep the sensor's current setting and only warn about the mismatch.
     std::stringstream ss;
     ss << current_return_mode;
-    logger_->info("Current LiDAR return_mode: " + ss.str());
     std::stringstream ss2;
     ss2 << sensor_configuration->return_mode;
-    logger_->info("Current Configuration return_mode: " + ss2.str());
-    std::thread t([this, sensor_configuration] {
-      auto return_mode_int = nebula::drivers::int_from_return_mode_hesai(
-        sensor_configuration->return_mode, sensor_configuration->sensor_model);
-      if (return_mode_int < 0) {
-        logger_->error(
-          "Invalid Return Mode for this sensor. Please check your settings. Falling back to Dual "
-          "mode.");
-        return_mode_int = 2;
-      }
-      set_return_mode(return_mode_int);
-    });
-    t.join();
-    std::this_thread::sleep_for(wait_time);
+    logger_->warn(
+      "LiDAR return_mode (" + ss.str() + ") differs from configuration (" + ss2.str() +
+      "), but setting the return mode is disabled. Keeping the sensor's setting.");
   }
 
   auto current_rotation_speed = hesai_config.spin_rate;
